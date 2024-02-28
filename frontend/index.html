@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+    body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+}
+
+.header {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    background-color: #4c63af;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.forms-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 70%;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.left-form,
+.right-form {
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+form {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.form-heading {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+input {
+    width: calc(100% - 20px);
+    padding: 8px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: #4c63af;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #ff0000;
+}
+
+.location-section {
+    text-align: center;
+    margin-bottom: 20px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#demo1,
+#demo {
+    margin-top: 20px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+    </style>
+    <title>CRISML</title>
+</head>
+<body>
+
+    <div class="header">Crop Recommendation Integrated System using ML</div>
+    <div class="location-section">
+
+        Location:
+        <input type="text" placeholder="Enter Location">
+        <span id="locations"></span>
+        <button onclick="getStateLocation()">Get Location</button>
+        <p id="demo1"></p>
+    </div>
+
+    <div class="forms-container">
+        <form action="" method="" class="left-form">
+            <div class="form-heading">Soil Levels</div>
+            <label for="Nitrogen">Nitrogen</label>
+            <input type="text" name="Nitrogen" id="Nitrogen" placeholder="Enter Nitrogen level">
+            <br>
+            <label for="Potassium">Potassium</label>
+            <input type="text" name="Potassium" id="Potassium" placeholder="Enter Potassium level">
+            <br>
+            <label for="phosphorus">Phosphorus</label>
+            <input type="text" name="Phosphorus" id="Phosphorus" placeholder="Enter Phosphorus level">
+            <br>
+            <label for="ph">PH</label>
+            <input type="text" name="ph" id="ph" placeholder="Enter PH level">
+            <br>
+            <button type="button" onclick="submitSoilForm()">Submit</button>
+        </form>
+
+        <form action="" method="" class="right-form">
+            <div class="form-heading">Real-time Weather Data</div>
+            <label for="temperature">Temperature</label>
+            <input type="text" name="Temperature" id="Temperature" placeholder="Enter temperature">
+            <br>
+            <label for="humidity">Humidity</label>
+            <input type="text" name="Humidity" id="Humidity" placeholder="Enter humidity">
+            <br>
+            <label for="rainfall">Rainfall</label>
+            <input type="text" name="Rainfall" id="Rainfall" placeholder="Enter rainfall">
+            <br>
+            <span id="location"> </span>
+            <button type="button" onclick="getLocation(event)">Get Predicted Data</button>
+            <p id="demo"></p>
+        </form>
+    </div>
+
+    <script>
+        const x = document.getElementById("demo1");
+
+        function getStateLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(getState, showError);
+            } else {
+                x.innerHTML = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        function getState(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+ 
+            const nominatimApiUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
+
+            fetch(nominatimApiUrl)
+                .then(response => response.json())
+                .then(data => {
+                   
+                    const state = data.address.state;
+
+                
+                    x.innerHTML = `State: ${state}`;
+                })
+                .catch(error => {
+                    console.error("Error fetching geocoding data:", error);
+                    x.innerHTML = "Error fetching geocoding data.";
+                });
+        }
+
+        function showError(error) {
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    x.innerHTML = "User denied the request for Geolocation.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    x.innerHTML = "Location information is unavailable.";
+                    break;
+                case error.TIMEOUT:
+                    x.innerHTML = "The request to get user location timed out.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    x.innerHTML = "An unknown error occurred.";
+                    break;
+            }
+        }
+
+        // Weather Data Retrieval
+        function getLocation(event) {
+            event.preventDefault();  
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(getWeather, showError);
+            } else {
+                document.getElementById("demo").innerHTML = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        function getWeather(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+ 
+            const apiKey = '5a6167a0a92b9db899444c310fcacc1d';
+            const weatherApiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`;
+
+          fetch(weatherApiUrl)
+    .then(response => response.json())
+    .then(data => {
+       
+        const temperatureKelvin = data.main.temp;
+        const temperatureCelsius = temperatureKelvin - 273.15;  
+        const humidity = data.main.humidity;
+        const rainfall = (data.rain && data.rain['1h']) ? data.rain['1h'] : 0;  
+       
+        document.getElementById("demo").innerHTML = `Temperature: ${temperatureCelsius.toFixed(2)}°C<br>Humidity: ${humidity}%<br>Rainfall (1h): ${rainfall} mm`;
+    })
+    .catch(error => {
+        console.error("Error fetching weather data:", error);
+        document.getElementById("demo").innerHTML = "Error fetching weather data.";
+    });
+        }
+
+       
+        function submitSoilForm() {
+            alert("Check Your Response");
+        }
+    </script>
+
+</body>
+</html>
